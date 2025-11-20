@@ -24,6 +24,20 @@ const { resourceLimits } = require("worker_threads");
 const userRouter = require("./routes/user.js");
 
 
+// ========== Environment Validation ==========
+const requiredEnvVars = ['ATLASDB_URL', 'SECRET', 'MAP_TOKEN'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.error(
+    `\n❌ FATAL: Missing required environment variables:\n` +
+    `${missingEnvVars.map(v => `   - ${v}`).join('\n')}\n` +
+    `\nPlease set these environment variables before starting the app.\n` +
+    `On Render, add them in: Service Settings > Environment Variables\n`
+  );
+  process.exit(1);
+}
+
 const dbUrl = process.env.ATLASDB_URL;
 
 main()
@@ -132,6 +146,7 @@ app.use((err, req, res, next) => {
   // res.status(statusCode).send(message);
 });
 
-app.listen(8080, () => {
-    console.log("server is listining to port 8080");
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+    console.log(`server is listening on port ${PORT}`);
 });
