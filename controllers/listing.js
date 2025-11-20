@@ -1,7 +1,20 @@
 const Listing = require("../models/listing");
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
 const mapToken = process.env.MAP_TOKEN;
-const geocodingClient = mbxGeocoding({ accessToken: mapToken });
+let geocodingClient;
+if (mapToken) {
+  geocodingClient = mbxGeocoding({ accessToken: mapToken });
+} else {
+  console.error("WARNING: MAP_TOKEN environment variable is not set. Geocoding will fail if used.");
+  // Provide a dummy client that throws a clear error when used, so app can start but endpoints fail with a helpful message
+  geocodingClient = {
+    forwardGeocode: () => ({
+      send: async () => {
+        throw new Error("MAP_TOKEN environment variable is not set. Set MAP_TOKEN in Render environment variables.");
+      }
+    })
+  };
+}
 
 module.exports.index = async (req, res) => {
   const allListings = await Listing.find({});
